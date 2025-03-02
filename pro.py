@@ -53,9 +53,9 @@ async def run_flask():
     await serve(web_app, config)
 
 # Bot Credentials
-API_ID = 22068322  # Replace with your actual API ID
-API_HASH = "f80238df5f19c0fd46ddd4f4bc78f119"  # Replace with your actual API Hash
-SESSION_STRING = "BQFQvGIAQXiBUGD_oCtCD6oRm1Adm4mBQEHPGC9lijx22P3jsBTVJeRonDtBFfElkMKP7hOoPjMJIbc2Q0I3p-GGO-NRTEkwKXswgpGuGiE5yj5GV9iFgALpqjba34t9LwwpEjDw_owBm4vE1PbOAGxMQqotsh5uudFvh7OQHjPXclNaFNq9f-6ylJmBaZsJ39jONMfrUqjHho-y7APFqXrdZkZ0jp0CDST4Rlh8gak6kJx1D2GnCPaC-9fecjUg7NJbhiwTZ7MlP2EIvQ4Gl666ez12zMm8GNfw0nShtoDoNcuzUaU7C8cTjMvLCallCOKQPxd3eRu_g1dAQyuhhgEJOCzkTQAAAAG2wyVCAA"  # Replace with your actual Session String
+API_ID = 25798238  # Replace with your actual API ID
+API_HASH = "c87b9a11c6307857687cbfe0ee818755"  # Replace with your actual API Hash
+SESSION_STRING = "BQGJpl4AUxPSt8MNPzq9Qh98aAF8NF4VAfCdvrvRBtbb4BVmn2ApB6rqMacc2k5Vdo3545SZu5vGUG3CG9lcw041x1Z8aDEzRXmr8W-IoeB_Hxb5oqYXATh_GoTm0od9-17KowlJ2135jy9pH0pL1zNCwSQmDh1XpVDneqimUD1U-N3MpAwsOs5ggBxg-6nFSOq-S4dqAeZRpRmV7aNpU3iAGt2m0oUCg3g9tWuNTRqDD34FhVdUlzYfHaeG1wJNf2RO7LmlYpG1OnbhdCDgj504UxI-8cmMobdFi74-gRFAj7WQ4okYKvCeh2pgCrIVYce6UkRWAeWZw6UokfOJruSGYY2tcAAAAAHbxqSHAA"  # Replace with your actual Session String
 
 # Initialize Pyrogram bot
 bot = Client(
