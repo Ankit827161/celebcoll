@@ -153,7 +153,7 @@ async def collect_celebrity(c: Client, m: Message):
         return  # Ignore messages from other groups
 
     try:
-        await asyncio.sleep(random.uniform(0.9, 1.4))
+        await asyncio.sleep(random.uniform(1.0, 1.7))
 
         if not m.caption:
             return
