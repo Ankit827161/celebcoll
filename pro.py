@@ -2,7 +2,6 @@ import os
 import logging
 import asyncio
 import random
-# Removed unused 're' import
 from pyrogram import Client, filters, idle
 from pyrogram.errors import FloodWait
 from pyrogram.types import Message
@@ -12,7 +11,7 @@ from flask import Flask
 # Configure Logging
 logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
-    level=logging.INFO
+    level=logging.INFO  # Change to logging.DEBUG for more detailed logs
 )
 
 # Initialize Database
@@ -44,7 +43,7 @@ def health_check():
     return "OK", 200
 
 async def run_flask():
-    """ Runs Flask server for health checks """
+    """Runs Flask server for health checks."""
     from hypercorn.asyncio import serve
     from hypercorn.config import Config
 
@@ -70,14 +69,14 @@ bot = Client(
 # Define Group IDs
 TARGET_GROUP_ID = -1002395952299  # Original target group
 MAIN_GROUP_ID = -1002499388382  # Main group for /startmain command
-FORWARD_CHANNEL_ID = -1002254491223  # Forwarding channel
+# FORWARD_CHANNEL_ID = -1002254491223  # Forwarding channel (disabled)
 
 # Control flags for collect functions
 collect_running = False  # For /startcollect command in TARGET_GROUP_ID
 collect_main_running = False  # For /startmain command in MAIN_GROUP_ID
 
 # Admin User IDs (replace with actual admin IDs)
-ADMIN_USER_IDS = [7508462500, 7859049019, 1710597756, 6895497681, 7435756663]
+ADMIN_USER_IDS = [7859049019, 7508462500, 1710597756, 6895497681, 7435756663]
 
 # User IDs permitted to trigger the collect function
 COLLECTOR_USER_IDS = [
@@ -95,8 +94,10 @@ async def start_collect(_, message: Message):
     if not collect_running:
         collect_running = True
         await message.reply("✅ Collect function started!")
+        logging.info("Collect function started in TARGET_GROUP_ID.")
     else:
         await message.reply("⚠ Collect function is already running!")
+        logging.info("Collect function already running in TARGET_GROUP_ID.")
 
 @bot.on_message(filters.command("stopcollect") & filters.chat(TARGET_GROUP_ID) & filters.user(ADMIN_USER_IDS))
 async def stop_collect(_, message: Message):
@@ -104,8 +105,10 @@ async def stop_collect(_, message: Message):
     if collect_running:
         collect_running = False
         await message.reply("🛑 Collect function stopped!")
+        logging.info("Collect function stopped in TARGET_GROUP_ID.")
     else:
         await message.reply("⚠ Collect function is not running!")
+        logging.info("Collect function was not running in TARGET_GROUP_ID.")
 
 # Start/Stop Collect Commands for MAIN_GROUP_ID
 @bot.on_message(filters.command("startmain") & filters.chat(MAIN_GROUP_ID) & filters.user(ADMIN_USER_IDS))
@@ -114,8 +117,10 @@ async def start_main_collect(_, message: Message):
     if not collect_main_running:
         collect_main_running = True
         await message.reply("✅ Main collect function started!")
+        logging.info("Main collect function started in MAIN_GROUP_ID.")
     else:
         await message.reply("⚠ Main collect function is already running!")
+        logging.info("Main collect function already running in MAIN_GROUP_ID.")
 
 @bot.on_message(filters.command("stopmain") & filters.chat(MAIN_GROUP_ID) & filters.user(ADMIN_USER_IDS))
 async def stop_main_collect(_, message: Message):
@@ -123,8 +128,10 @@ async def stop_main_collect(_, message: Message):
     if collect_main_running:
         collect_main_running = False
         await message.reply("🛑 Main collect function stopped!")
+        logging.info("Main collect function stopped in MAIN_GROUP_ID.")
     else:
         await message.reply("⚠ Main collect function is not running!")
+        logging.info("Main collect function was not running in MAIN_GROUP_ID.")
 
 # Collect Celebrity Function
 @bot.on_message(
@@ -183,27 +190,27 @@ async def collect_celebrity(c: Client, m: Message):
     except Exception as e:
         logging.error(f"Error processing message: {e}")
 
-# Forward messages with specific rarities
-RARITIES_TO_FORWARD = ["Cosmic", "Limited Edition", "Exclusive", "Ultimate"]
+# Forward messages with specific rarities (Disabled)
+# RARITIES_TO_FORWARD = ["Cosmic", "Limited Edition", "Exclusive", "Ultimate"]
 
-@bot.on_message(filters.chat([TARGET_GROUP_ID, MAIN_GROUP_ID]))
-async def check_rarity_and_forward(_, message: Message):
-    if not message.text:
-        return
-
-    if "🎯 Look You Collected A" in message.text:
-        logging.info(f"Checking message for rarity:\n{message.text}")
-
-        for rarity in RARITIES_TO_FORWARD:
-            if f"Rarity : {rarity}" in message.text:
-                logging.info(f"Detected {rarity} celebrity! Forwarding...")
-                await bot.send_message(FORWARD_CHANNEL_ID, message.text)
-                break
+# @bot.on_message(filters.chat([TARGET_GROUP_ID, MAIN_GROUP_ID]))
+# async def check_rarity_and_forward(_, message: Message):
+#     if not message.text:
+#         return
+#
+#     if "🎯 Look You Collected A" in message.text:
+#         logging.info(f"Checking message for rarity:\n{message.text}")
+#
+#         for rarity in RARITIES_TO_FORWARD:
+#             if f"Rarity : {rarity}" in message.text:
+#                 logging.info(f"Detected {rarity} celebrity! Forwarding...")
+#                 await bot.send_message(FORWARD_CHANNEL_ID, message.text)
+#                 break
 
 # Extract File ID Command
 @bot.on_message(filters.command("fileid") & filters.reply & filters.user(ADMIN_USER_IDS))
 async def extract_file_id(_, message: Message):
-    """Extracts and sends the unique file ID of a replied photo"""
+    """Extracts and sends the unique file ID of a replied photo."""
     if not message.reply_to_message or not message.reply_to_message.photo:
         await message.reply("⚠ Please reply to a photo to extract the file ID.")
         return
@@ -213,12 +220,11 @@ async def extract_file_id(_, message: Message):
 
 # Main function to run the bot and Flask server concurrently
 async def main():
-    """ Runs Pyrogram bot and Flask server concurrently """
+    """Runs Pyrogram bot and Flask server concurrently."""
     await bot.start()
     logging.info("Bot started successfully!")
     await asyncio.gather(run_flask(), idle())
     await bot.stop()
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
+    asyncio.run(main())
