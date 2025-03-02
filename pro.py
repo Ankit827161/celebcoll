@@ -190,23 +190,6 @@ async def collect_celebrity(c: Client, m: Message):
     except Exception as e:
         logging.error(f"Error processing message: {e}")
 
-# Forward messages with specific rarities (Disabled)
-# RARITIES_TO_FORWARD = ["Cosmic", "Limited Edition", "Exclusive", "Ultimate"]
-
-# @bot.on_message(filters.chat([TARGET_GROUP_ID, MAIN_GROUP_ID]))
-# async def check_rarity_and_forward(_, message: Message):
-#     if not message.text:
-#         return
-#
-#     if "🎯 Look You Collected A" in message.text:
-#         logging.info(f"Checking message for rarity:\n{message.text}")
-#
-#         for rarity in RARITIES_TO_FORWARD:
-#             if f"Rarity : {rarity}" in message.text:
-#                 logging.info(f"Detected {rarity} celebrity! Forwarding...")
-#                 await bot.send_message(FORWARD_CHANNEL_ID, message.text)
-#                 break
-
 # Extract File ID Command
 @bot.on_message(filters.command("fileid") & filters.reply & filters.user(ADMIN_USER_IDS))
 async def extract_file_id(_, message: Message):
@@ -227,4 +210,6 @@ async def main():
     await bot.stop()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    # Use get_event_loop instead of asyncio.run to avoid event loop conflicts
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())
