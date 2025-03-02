@@ -68,7 +68,7 @@ bot = Client(
 
 # Define Group IDs
 TARGET_GROUP_ID = -1002395952299  # Original target group
-MAIN_GROUP_ID = -1002499388382  # Main group for /startmain command
+MAIN_GROUP_ID = -1002268194521  # Main group for /startmain command
 FORWARD_CHANNEL_ID = -1002254491223  # Forwarding channel (disabled)
 
 # Control flags for collect functions
@@ -111,8 +111,9 @@ async def stop_collect(_, message: Message):
         logging.info("Collect function was not running in TARGET_GROUP_ID.")
 
 # Start/Stop Collect Commands for MAIN_GROUP_ID
-@bot.on_message(filters.command("startmain") & filters.chat(MAIN_GROUP_ID) & filters.user(ADMIN_USER_IDS))
+@bot.on_message(filters.command("startmain") & filters.user(ADMIN_USER_IDS))
 async def start_main_collect(_, message: Message):
+    """Starts the main collect function but only affects MAIN_GROUP_ID."""
     global collect_main_running
     if not collect_main_running:
         collect_main_running = True
@@ -120,10 +121,11 @@ async def start_main_collect(_, message: Message):
         logging.info("Main collect function started in MAIN_GROUP_ID.")
     else:
         await message.reply("⚠ Main collect function is already running!")
-        logging.info("Main collect function already running in MAIN_GROUP_ID.")
 
-@bot.on_message(filters.command("stopmain") & filters.chat(MAIN_GROUP_ID) & filters.user(ADMIN_USER_IDS))
+
+@bot.on_message(filters.command("stopmain") & filters.user(ADMIN_USER_IDS))
 async def stop_main_collect(_, message: Message):
+    """Stops the main collect function but only affects MAIN_GROUP_ID."""
     global collect_main_running
     if collect_main_running:
         collect_main_running = False
@@ -131,8 +133,6 @@ async def stop_main_collect(_, message: Message):
         logging.info("Main collect function stopped in MAIN_GROUP_ID.")
     else:
         await message.reply("⚠ Main collect function is not running!")
-        logging.info("Main collect function was not running in MAIN_GROUP_ID.")
-
 # Collect Celebrity Function
 @bot.on_message(
     filters.photo &
