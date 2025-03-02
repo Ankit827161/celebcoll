@@ -2,6 +2,7 @@ import os
 import logging
 import asyncio
 import random
+# Removed unused 're' import
 from pyrogram import Client, filters, idle
 from pyrogram.errors import FloodWait
 from pyrogram.types import Message
@@ -52,9 +53,9 @@ async def run_flask():
     await serve(web_app, config)
 
 # Bot Credentials
-API_ID = 29187149  
-API_HASH = "b1c8abd0447cdccc7ade9d68cfc0d2e2"
-SESSION_STRING = "BQG9XE0AMprKHi8H5i3KPxjb7OQeq_JzBMaDCaD-HTJKkupGQf4FtLDpiLQIsv6-wDIC-tEZOZLKwyF2dY33GQDSlpgC26iatBqlXVdAt28SCBhJf6MLd1x0dL4cwd1_smK3pSTLu6UgrNUEQr1yBiW_7J2KH3prV-Ek0vUwcgKmt7C58kLPPXrQfkU9xPsgxHckOE9r-cDIqivQMNd2qeZkbapAAkVTJZ_YRXr5yG3SgrxTs4eyyqhZCqFY0mj26ejVLYcx4j8_bgZu4j8IKautKzLaiVnB57gzUeZHUSEGcZtdlPa80CV2PokeEEx16pVhO9nqHIsi4XKTyF9FB9dEUmwLLAAAAAG7NKR3AA"
+API_ID = 22068322  # Replace with your actual API ID
+API_HASH = "f80238df5f19c0fd46ddd4f4bc78f119"  # Replace with your actual API Hash
+SESSION_STRING = "BQFQvGIAQXiBUGD_oCtCD6oRm1Adm4mBQEHPGC9lijx22P3jsBTVJeRonDtBFfElkMKP7hOoPjMJIbc2Q0I3p-GGO-NRTEkwKXswgpGuGiE5yj5GV9iFgALpqjba34t9LwwpEjDw_owBm4vE1PbOAGxMQqotsh5uudFvh7OQHjPXclNaFNq9f-6ylJmBaZsJ39jONMfrUqjHho-y7APFqXrdZkZ0jp0CDST4Rlh8gak6kJx1D2GnCPaC-9fecjUg7NJbhiwTZ7MlP2EIvQ4Gl666ez12zMm8GNfw0nShtoDoNcuzUaU7C8cTjMvLCallCOKQPxd3eRu_g1dAQyuhhgEJOCzkTQAAAAG2wyVCAA"  # Replace with your actual Session String
 
 # Initialize Pyrogram bot
 bot = Client(
@@ -66,14 +67,29 @@ bot = Client(
     max_concurrent_transmissions=10
 )
 
-# Define Target Group and Forwarding Channel
-TARGET_GROUP_ID = -1002395952299  
-FORWARD_CHANNEL_ID = -1002254491223  
+# Define Group IDs
+TARGET_GROUP_ID = -1002395952299  # Original target group
+MAIN_GROUP_ID = -1002499388382  # Main group for /startmain command
+FORWARD_CHANNEL_ID = -1002254491223  # Forwarding channel
 
-# Control flag for collect function
-collect_running = False
+# Control flags for collect functions
+collect_running = False  # For /startcollect command in TARGET_GROUP_ID
+collect_main_running = False  # For /startmain command in MAIN_GROUP_ID
 
-@bot.on_message(filters.command("startcollect") & filters.chat(TARGET_GROUP_ID) & filters.user([7508462500, 7859049019, 1710597756, 6895497681, 7859049019, 7435756663]))
+# Admin User IDs (replace with actual admin IDs)
+ADMIN_USER_IDS = [7508462500, 7859049019, 1710597756, 6895497681, 7435756663]
+
+# User IDs permitted to trigger the collect function
+COLLECTOR_USER_IDS = [
+    7522153272, 7946198415, 7742832624, 7859049019,
+    1710597756, 7828242164, 7957490622
+]
+
+# Preload players at startup
+preload_players()
+
+# Start/Stop Collect Commands for TARGET_GROUP_ID
+@bot.on_message(filters.command("startcollect") & filters.chat(TARGET_GROUP_ID) & filters.user(ADMIN_USER_IDS))
 async def start_collect(_, message: Message):
     global collect_running
     if not collect_running:
@@ -82,29 +98,66 @@ async def start_collect(_, message: Message):
     else:
         await message.reply("⚠ Collect function is already running!")
 
-@bot.on_message(filters.command("stopcollect") & filters.chat(TARGET_GROUP_ID) & filters.user([7508462500, 7859049019, 1710597756, 6895497681, 7859049019, 7435756663]))
+@bot.on_message(filters.command("stopcollect") & filters.chat(TARGET_GROUP_ID) & filters.user(ADMIN_USER_IDS))
 async def stop_collect(_, message: Message):
     global collect_running
-    collect_running = False
-    await message.reply("🛑 Collect function stopped!")
+    if collect_running:
+        collect_running = False
+        await message.reply("🛑 Collect function stopped!")
+    else:
+        await message.reply("⚠ Collect function is not running!")
 
-@bot.on_message(filters.photo & filters.chat(TARGET_GROUP_ID) & filters.user([7522153272, 7946198415, 7742832624, 7859049019, 7859049019, 1710597756, 7828242164, 7957490622]))
+# Start/Stop Collect Commands for MAIN_GROUP_ID
+@bot.on_message(filters.command("startmain") & filters.chat(MAIN_GROUP_ID) & filters.user(ADMIN_USER_IDS))
+async def start_main_collect(_, message: Message):
+    global collect_main_running
+    if not collect_main_running:
+        collect_main_running = True
+        await message.reply("✅ Main collect function started!")
+    else:
+        await message.reply("⚠ Main collect function is already running!")
+
+@bot.on_message(filters.command("stopmain") & filters.chat(MAIN_GROUP_ID) & filters.user(ADMIN_USER_IDS))
+async def stop_main_collect(_, message: Message):
+    global collect_main_running
+    if collect_main_running:
+        collect_main_running = False
+        await message.reply("🛑 Main collect function stopped!")
+    else:
+        await message.reply("⚠ Main collect function is not running!")
+
+# Collect Celebrity Function
+@bot.on_message(
+    filters.photo &
+    filters.chat([TARGET_GROUP_ID, MAIN_GROUP_ID]) &
+    filters.user(COLLECTOR_USER_IDS)
+)
 async def collect_celebrity(c: Client, m: Message):
-    global collect_running
-    if not collect_running:
-        return
+    global collect_running, collect_main_running
+
+    # Determine which group the message is from and check if collecting is running
+    if m.chat.id == TARGET_GROUP_ID:
+        if not collect_running:
+            return
+    elif m.chat.id == MAIN_GROUP_ID:
+        if not collect_main_running:
+            return
+    else:
+        return  # Ignore messages from other groups
 
     try:
         await asyncio.sleep(random.uniform(0.2, 0.6))
 
         if not m.caption:
-            return  
+            return
 
         logging.debug(f"Received caption: {m.caption}")
 
-        # Only process OG Celebrity messages
-        if "❄️ ʟᴏᴏᴋ ᴀɴ ᴀᴡsᴏᴍᴇ ᴄᴇʟᴇʙʀɪᴛʏ ᴊᴜꜱᴛ ᴀʀʀɪᴠᴇᴅ ᴄᴏʟʟᴇᴄᴛ ʜᴇʀ/ʜɪᴍ ᴜꜱɪɴɢ /ᴄᴏʟʟᴇᴄᴛ ɴᴀᴍᴇ" not in m.caption:
-            return  
+        # Check for the exact caption
+        target_caption = "❄️ ʟᴏᴏᴋ ᴀɴ ᴀᴡsᴏᴍᴇ ᴄᴇʟᴇʙʀɪᴛʏ ᴊᴜꜱᴛ ᴀʀʀɪᴠᴇᴅ ᴄᴏʟʟᴇᴄᴛ ʜᴇʀ/ʜɪᴍ ᴜꜱɪɴɢ /ᴄᴏʟʟᴇᴄᴛ ɴᴀᴍᴇ"
+
+        if m.caption.strip() != target_caption:
+            return
 
         file_id = m.photo.file_unique_id
 
@@ -112,10 +165,10 @@ async def collect_celebrity(c: Client, m: Message):
         if file_id in player_cache:
             player_name = player_cache[file_id]['name']
         else:
-            file_data = db.get(file_id)  
+            file_data = db.get(file_id)
             if file_data:
                 player_name = file_data['name']
-                player_cache[file_id] = file_data  
+                player_cache[file_id] = file_data
             else:
                 logging.warning(f"Image ID {file_id} not found in DB!")
                 return
@@ -124,7 +177,7 @@ async def collect_celebrity(c: Client, m: Message):
         await bot.send_message(m.chat.id, f"/collect {player_name}")
 
     except FloodWait as e:
-        wait_time = e.value + random.randint(1, 5)  
+        wait_time = e.value + random.randint(1, 5)
         logging.warning(f"Rate limit hit! Waiting for {wait_time} seconds...")
         await asyncio.sleep(wait_time)
     except Exception as e:
@@ -133,10 +186,10 @@ async def collect_celebrity(c: Client, m: Message):
 # Forward messages with specific rarities
 RARITIES_TO_FORWARD = ["Cosmic", "Limited Edition", "Exclusive", "Ultimate"]
 
-@bot.on_message(filters.chat(TARGET_GROUP_ID))
+@bot.on_message(filters.chat([TARGET_GROUP_ID, MAIN_GROUP_ID]))
 async def check_rarity_and_forward(_, message: Message):
     if not message.text:
-        return  
+        return
 
     if "🎯 Look You Collected A" in message.text:
         logging.info(f"Checking message for rarity:\n{message.text}")
@@ -145,21 +198,22 @@ async def check_rarity_and_forward(_, message: Message):
             if f"Rarity : {rarity}" in message.text:
                 logging.info(f"Detected {rarity} celebrity! Forwarding...")
                 await bot.send_message(FORWARD_CHANNEL_ID, message.text)
-                break  
+                break
 
-@bot.on_message(filters.command("fileid") & filters.chat(TARGET_GROUP_ID) & filters.reply & filters.user([7508462500, 1710597756, 6895497681, 7435756663]))
+# Extract File ID Command
+@bot.on_message(filters.command("fileid") & filters.reply & filters.user(ADMIN_USER_IDS))
 async def extract_file_id(_, message: Message):
     """Extracts and sends the unique file ID of a replied photo"""
     if not message.reply_to_message or not message.reply_to_message.photo:
         await message.reply("⚠ Please reply to a photo to extract the file ID.")
         return
-    
+
     file_unique_id = message.reply_to_message.photo.file_unique_id
     await message.reply(f"📂 **File Unique ID:** `{file_unique_id}`")
 
+# Main function to run the bot and Flask server concurrently
 async def main():
     """ Runs Pyrogram bot and Flask server concurrently """
-    preload_players()
     await bot.start()
     logging.info("Bot started successfully!")
     await asyncio.gather(run_flask(), idle())
