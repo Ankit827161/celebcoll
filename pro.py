@@ -68,7 +68,7 @@ bot = Client(
 
 # Define Group IDs
 TARGET_GROUP_ID = -1002395952299  # Original target group
-MAIN_GROUP_ID = -1002499388382  # Main group for /startmain command
+MAIN_GROUP_ID = -1002268194521  # Main group for /startmain command
 # FORWARD_CHANNEL_ID = -1002254491223  # Forwarding channel (disabled)
 
 # Control flags for collect functions
